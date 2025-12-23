@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "description": "Who doesn't like the night, with flickering stars?",
     "category": "theme",
-    "url": "https://github.com/JoanFo1456/pelican-plugins",
+    "url": "https://github.com/pelican-plugins-community/starrynight",
     "update_url": "",
     "namespace": "JoanFo\\StarryNight",
     "class": "StarryNightPlugin",
