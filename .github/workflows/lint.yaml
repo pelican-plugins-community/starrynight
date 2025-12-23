@@ -21,14 +21,13 @@ jobs:
           tools: composer:v2
           coverage: none
 
-      - name: Setup .env
-        run: cp .env.example .env
-
-      - name: Install dependencies
-        run: composer install --no-interaction --no-suggest --no-progress --no-autoloader --no-scripts
+      - name: Download Pint
+        run: |
+          curl -fsSL -o pint.phar https://github.com/laravel/pint/releases/latest/download/pint.phar
+          chmod +x pint.phar
 
       - name: Pint
-        run: vendor/bin/pint --test
+        run: php pint.phar --test
   phpstan:
     name: PHPStan
     runs-on: ubuntu-latest
@@ -40,18 +39,6 @@ jobs:
       - name: Code Checkout
         uses: actions/checkout@v4
 
-      - name: Get cache directory
-        id: composer-cache
-        run: |
-          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-${{ matrix.php }}-
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -60,6 +47,10 @@ jobs:
           extensions: bcmath, curl, gd, mbstring, mysql, openssl, pdo, tokenizer, xml, zip
           tools: composer:v2
           coverage: none
+      - name: Download PHPStan
+        run: |
+          curl -fsSL -o phpstan.phar https://github.com/phpstan/phpstan/releases/latest/download/phpstan.phar
+          chmod +x phpstan.phar
 
       - name: PHPStan
-        run: vendor/bin/phpstan --memory-limit=-1 --error-format=github
+        run: php phpstan.phar analyse --memory-limit=-1 --error-format=github
