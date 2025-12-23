@@ -61,11 +61,5 @@ jobs:
           tools: composer:v2
           coverage: none
 
-      - name: Setup .env
-        run: cp .env.example .env
-
-      - name: Install dependencies
-        run: composer install --no-interaction --no-suggest --no-progress --no-scripts
-
       - name: PHPStan
         run: vendor/bin/phpstan --memory-limit=-1 --error-format=github
