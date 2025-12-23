@@ -53,4 +53,4 @@ jobs:
           chmod +x phpstan.phar
 
       - name: PHPStan
-        run: php phpstan.phar analyse --memory-limit=-1 --error-format=github
+        run: php phpstan.phar analyse src --memory-limit=-1 --error-format=github
