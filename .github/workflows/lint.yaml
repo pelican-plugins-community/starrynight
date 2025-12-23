@@ -1,4 +1,4 @@
-name: Lint
+name: Pint
 
 on:
   pull_request:
@@ -28,29 +28,7 @@ jobs:
 
       - name: Pint
         run: php pint.phar --test
-  phpstan:
-    name: PHPStan
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        php: [ 8.2, 8.3, 8.4 ]
-    steps:
-      - name: Code Checkout
-        uses: actions/checkout@v4
 
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          extensions: bcmath, curl, gd, mbstring, mysql, openssl, pdo, tokenizer, xml, zip
-          tools: composer:v2
-          coverage: none
-      - name: Download PHPStan
-        run: |
-          curl -fsSL -o phpstan.phar https://github.com/phpstan/phpstan/releases/latest/download/phpstan.phar
-          chmod +x phpstan.phar
 
       - name: PHPStan
         run: php phpstan.phar analyse . --memory-limit=-1 --error-format=github
