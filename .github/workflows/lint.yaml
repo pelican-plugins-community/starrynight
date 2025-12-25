@@ -21,10 +21,21 @@ jobs:
           tools: composer:v2
           coverage: none
 
-      - name: Download Pint
+      - name: Fetch and sanitize composer.json
         run: |
           curl -fsSL -o composer.json https://raw.githubusercontent.com/pelican-dev/panel/refs/heads/main/composer.json
-          echo "Fetched composer.json for Pint job"; jq -r '.name, .require | keys[]?' composer.json || true
+          echo "Fetched composer.json for Pint job"
+          php -r '
+          $c = json_decode(file_get_contents("composer.json"), true);
+          if (isset($c["autoload"]["files"])) {
+              unset($c["autoload"]["files"]);
+              file_put_contents("composer.json", json_encode($c, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
+              echo "Removed autoload.files entries\n";
+          } else {
+              echo "No autoload.files to remove\n";
+          }
+          '
+          echo "composer.json after sanitization:"; sed -n '1,120p' composer.json || true
 
       - name: Install dependencies
         run: |
@@ -51,13 +62,25 @@ jobs:
           extensions: bcmath, curl, gd, mbstring, mysql, openssl, pdo, tokenizer, xml, zip
           tools: composer:v2
           coverage: none
-      - name: Fetch composer.json
+      - name: Fetch and sanitize composer.json
         run: |
           curl -fsSL -o composer.json https://raw.githubusercontent.com/pelican-dev/panel/refs/heads/main/composer.json
-          echo "Fetched composer.json:"; jq -r '.name, .require | keys[]?' composer.json || true
-
+          echo "Fetched composer.json for PHPStan job"
+          php -r '
+          $c = json_decode(file_get_contents("composer.json"), true);
+          if (isset($c["autoload"]["files"])) {
+              unset($c["autoload"]["files"]);
+              file_put_contents("composer.json", json_encode($c, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
+              echo "Removed autoload.files entries\n";
+          }
+          '
       - name: Install dependencies
         run: |
           composer install --no-interaction --no-suggest --no-progress --prefer-dist --no-scripts
       - name: PHPStan
-        run: vendor/bin/phpstan analyse src --memory-limit=-1 --error-format=github
+        run: |
+          if [ -d src ]; then
+            vendor/bin/phpstan analyse src --memory-limit=-1 --error-format=github
+          else
+            vendor/bin/phpstan analyse . --memory-limit=-1 --error-format=github
+          fi
