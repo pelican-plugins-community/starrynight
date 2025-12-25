@@ -1,4 +1,4 @@
-name: Lint
+name: Pint
 
 on:
   pull_request:
@@ -21,100 +21,14 @@ jobs:
           tools: composer:v2
           coverage: none
 
-      - name: Fetch and sanitize composer.json
+      - name: Download Pint
         run: |
-          curl -fsSL -o composer.json https://raw.githubusercontent.com/pelican-dev/panel/refs/heads/main/composer.json
-          echo "Fetched composer.json for Pint job"
-          php -r '
-          $c = json_decode(file_get_contents("composer.json"), true);
-          if (isset($c["autoload"]["files"])) {
-              unset($c["autoload"]["files"]);
-              file_put_contents("composer.json", json_encode($c, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
-              echo "Removed autoload.files entries\n";
-          } else {
-              echo "No autoload.files to remove\n";
-          }
-          '
-          echo "composer.json after sanitization:"; sed -n '1,120p' composer.json || true
-
-      - name: Install dependencies
-        run: |
-          composer install --no-interaction --no-suggest --no-progress --prefer-dist --no-scripts
-
-      - name: Sanitize Composer autoload files
-        run: |
-          php -r '
-          $f = "vendor/composer/autoload_files.php";
-          if (!file_exists($f)) { echo "No autoload_files.php to sanitize\n"; exit(0); }
-          $a = require $f;
-          $b = [];
-          foreach ($a as $k => $v) {
-              if (file_exists($v)) {
-                  $b[$k] = $v;
-              } else {
-                  echo "Removed missing autoload file: $v\n";
-              }
-          }
-          file_put_contents($f, "<?php\nreturn ".var_export($b, true).";\n");
-          echo "Sanitized autoload_files.php\n";
-          '
+          curl -fsSL -o pint.phar https://github.com/laravel/pint/releases/latest/download/pint.phar
+          chmod +x pint.phar
 
       - name: Pint
-        run: vendor/bin/pint --test
-  phpstan:
-    name: PHPStan
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        php: [ 8.2, 8.3, 8.4 ]
-    steps:
-      - name: Code Checkout
-        uses: actions/checkout@v4
+        run: php pint.phar --test
 
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          extensions: bcmath, curl, gd, mbstring, mysql, openssl, pdo, tokenizer, xml, zip
-          tools: composer:v2
-          coverage: none
-      - name: Fetch and sanitize composer.json
-        run: |
-          curl -fsSL -o composer.json https://raw.githubusercontent.com/pelican-dev/panel/refs/heads/main/composer.json
-          echo "Fetched composer.json for PHPStan job"
-          php -r '
-          $c = json_decode(file_get_contents("composer.json"), true);
-          if (isset($c["autoload"]["files"])) {
-              unset($c["autoload"]["files"]);
-              file_put_contents("composer.json", json_encode($c, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
-              echo "Removed autoload.files entries\n";
-          }
-          '
-      - name: Install dependencies
-        run: |
-          composer install --no-interaction --no-suggest --no-progress --prefer-dist --no-scripts
-      - name: Sanitize Composer autoload files
-        run: |
-          php -r '
-          $f = "vendor/composer/autoload_files.php";
-          if (!file_exists($f)) { echo "No autoload_files.php to sanitize\n"; exit(0); }
-          $a = require $f;
-          $b = [];
-          foreach ($a as $k => $v) {
-              if (file_exists($v)) {
-                  $b[$k] = $v;
-              } else {
-                  echo "Removed missing autoload file: $v\n";
-              }
-          }
-          file_put_contents($f, "<?php\nreturn ".var_export($b, true).";\n");
-          '
       - name: PHPStan
-        run: |
-          if [ -d src ]; then
-            vendor/bin/phpstan analyse src --memory-limit=-1 --error-format=github
-          else
-            vendor/bin/phpstan analyse . --memory-limit=-1 --error-format=github
-          fi
+        run: php phpstan.phar analyse . --memory-limit=-1 --error-format=github
