@@ -41,6 +41,24 @@ jobs:
         run: |
           composer install --no-interaction --no-suggest --no-progress --prefer-dist --no-scripts
 
+      - name: Sanitize Composer autoload files
+        run: |
+          php -r '
+          $f = "vendor/composer/autoload_files.php";
+          if (!file_exists($f)) { echo "No autoload_files.php to sanitize\n"; exit(0); }
+          $a = require $f;
+          $b = [];
+          foreach ($a as $k => $v) {
+              if (file_exists($v)) {
+                  $b[$k] = $v;
+              } else {
+                  echo "Removed missing autoload file: $v\n";
+              }
+          }
+          file_put_contents($f, "<?php\nreturn ".var_export($b, true).";\n");
+          echo "Sanitized autoload_files.php\n";
+          '
+
       - name: Pint
         run: vendor/bin/pint --test
   phpstan:
@@ -77,6 +95,22 @@ jobs:
       - name: Install dependencies
         run: |
           composer install --no-interaction --no-suggest --no-progress --prefer-dist --no-scripts
+      - name: Sanitize Composer autoload files
+        run: |
+          php -r '
+          $f = "vendor/composer/autoload_files.php";
+          if (!file_exists($f)) { echo "No autoload_files.php to sanitize\n"; exit(0); }
+          $a = require $f;
+          $b = [];
+          foreach ($a as $k => $v) {
+              if (file_exists($v)) {
+                  $b[$k] = $v;
+              } else {
+                  echo "Removed missing autoload file: $v\n";
+              }
+          }
+          file_put_contents($f, "<?php\nreturn ".var_export($b, true).";\n");
+          '
       - name: PHPStan
         run: |
           if [ -d src ]; then
