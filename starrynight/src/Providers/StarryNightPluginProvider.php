@@ -34,9 +34,9 @@ class StarryNightPluginProvider extends ServiceProvider
         ];
 
         foreach ($pairs as [$source, $destination]) {
-            if (! File::exists($destination) && File::exists($source)) {
+            if (!File::exists($destination) && File::exists($source)) {
                 $dir = dirname($destination);
-                if (! File::isDirectory($dir)) {
+                if (!File::isDirectory($dir)) {
                     File::makeDirectory($dir, 0755, true);
                 }
                 File::copy($source, $destination);

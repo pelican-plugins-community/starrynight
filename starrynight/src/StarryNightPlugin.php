@@ -23,9 +23,9 @@ class StarryNightPlugin implements Plugin
 
         foreach ($pairs as [$source, $destination]) {
             try {
-                if (! File::exists($destination) && File::exists($source)) {
+                if (!File::exists($destination) && File::exists($source)) {
                     $dir = dirname($destination);
-                    if (! File::isDirectory($dir)) {
+                    if (!File::isDirectory($dir)) {
                         File::makeDirectory($dir, 0755, true);
                     }
                     File::copy($source, $destination);
@@ -145,7 +145,7 @@ HTML;
         });
 
         $panel->renderHook('panels::body.start', function () {
-              $meteorHtml = '<section class="starrynight-meteors">
+            $meteorHtml = '<section class="starrynight-meteors">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -157,7 +157,7 @@ HTML;
                 <span></span>
                 <span></span>
             </section>';
-                $meteorCss = <<<'CSS'
+            $meteorCss = <<<'CSS'
             <style>
             .starrynight-meteors { position: absolute; top: 0; left: 0; width: 100%; height: 100vh; pointer-events: none; z-index: 2; overflow: hidden; }
             .starrynight-meteors span { position: absolute; top: 50%; left: 50%; width: 4px; height: 4px; background: var(--sn-meteor-color, #fff); border-radius: 50%; box-shadow: 0 0 0 4px var(--sn-star-glow, rgba(255,255,255,0.1)),0 0 0 8px var(--sn-star-glow, rgba(255,255,255,0.1)),0 0 20px var(--sn-star-glow, rgba(255,255,255,0.1)); animation: animate 3s linear infinite; }
