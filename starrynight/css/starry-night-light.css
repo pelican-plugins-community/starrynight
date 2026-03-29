@@ -5,6 +5,13 @@
     --sn-meteor-color: #b86b1a;
     --sn-meteor-inner: rgba(255,244,220,1);
     --sn-meteor-mid: rgba(255,224,140,0.9);
+
+    /* Liquid glass – light theme */
+    --sn-glass-bg: rgba(255, 255, 255, 0.45);
+    --sn-glass-bg-strong: rgba(255, 255, 255, 0.60);
+    --sn-glass-border: rgba(255, 255, 255, 0.75);
+    --sn-glass-shadow: 0 4px 24px rgba(130, 80, 200, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.80);
+    --sn-glass-blur: blur(20px) saturate(200%);
 }
 
 
@@ -27,16 +34,23 @@ html, body, #app, .fi-main, .fi-page, .fi-panel {
 .fi-ta-body,
 .fi-ta-body .fi-ta-cell,
 .fi-ta-body .fi-ta-row,
-.fi-ta-body-row,
-.fi-topbar{
+.fi-ta-body-row {
     background: transparent !important;
     background-color: transparent !important;
 }
 
+.fi-topbar {
+    background: var(--sn-glass-bg-strong) !important;
+    backdrop-filter: var(--sn-glass-blur) !important;
+    border-bottom: 1px solid var(--sn-glass-border) !important;
+    box-shadow: var(--sn-glass-shadow) !important;
+}
+
 .fi-ta-ctn-header,
-.fi-sc-tabs{
-    background: transparent !important;
-    background-color: transparent !important;
+.fi-sc-tabs {
+    background: var(--sn-glass-bg) !important;
+    backdrop-filter: var(--sn-glass-blur) !important;
+    border-bottom: 1px solid var(--sn-glass-border) !important;
 }
 
 thead,
@@ -56,10 +70,10 @@ tbody tr {
 [class*="fi-section"]:not([class*="dropdown"]):not([class*="menu"]),
 [class*="fi-card"]:not([class*="dropdown"]):not([class*="menu"]),
 [class*="fi-widget"]:not([class*="dropdown"]):not([class*="menu"]) {
-    background: transparent !important;
-    background-color: transparent !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
+    background: var(--sn-glass-bg) !important;
+    backdrop-filter: var(--sn-glass-blur) !important;
+    border: 1px solid var(--sn-glass-border) !important;
+    box-shadow: var(--sn-glass-shadow) !important;
 }
 
 .fi-main {
