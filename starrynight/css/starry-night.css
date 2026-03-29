@@ -145,7 +145,6 @@ body {
 }
 .fi-modal,
 .fi-ta-content,
-.fi-ta-ctn,
 .fi-ta-table,
 .fi-ta-header,
 .fi-ta-header-cell,
@@ -158,17 +157,36 @@ body {
     background-color: transparent !important;
 }
 
+/* Table outer container – liquid glass */
+.fi-ta-ctn {
+    background: var(--sn-glass-bg) !important;
+    backdrop-filter: var(--sn-glass-blur) !important;
+    border: 1px solid var(--sn-glass-border) !important;
+    box-shadow: var(--sn-glass-shadow) !important;
+}
+
 .fi-topbar {
     background: var(--sn-glass-bg-strong) !important;
     backdrop-filter: var(--sn-glass-blur) !important;
     border-bottom: 1px solid var(--sn-glass-border) !important;
     box-shadow: var(--sn-glass-shadow) !important;
 }
-.fi-ta-content.fi-ta-content-grid.fi-grid.md\:fi-grid-cols {
-    background: transparent !important;
-    background-color: transparent !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
+
+/* Sidebar navigation – liquid glass */
+.fi-sidebar {
+    background: var(--sn-glass-bg) !important;
+    backdrop-filter: var(--sn-glass-blur) !important;
+    border-right: 1px solid var(--sn-glass-border) !important;
+    box-shadow: var(--sn-glass-shadow) !important;
+}
+/* Grid view container – liquid glass (individual cards inside inherit from .fi-card rule) */
+.fi-ta-content-grid,
+.fi-ta-content.fi-ta-content-grid,
+.fi-grid {
+    background: var(--sn-glass-bg) !important;
+    backdrop-filter: var(--sn-glass-blur) !important;
+    border: 1px solid var(--sn-glass-border) !important;
+    box-shadow: var(--sn-glass-shadow) !important;
 }
 .fi-ta-ctn-header,
 .fi-sc-tabs {

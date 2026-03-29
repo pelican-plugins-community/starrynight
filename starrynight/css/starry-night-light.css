@@ -26,7 +26,6 @@ html, body, #app, .fi-main, .fi-page, .fi-panel {
 
 .fi-modal,
 .fi-ta-content,
-.fi-ta-ctn,
 .fi-ta-table,
 .fi-ta-header,
 .fi-ta-header-cell,
@@ -39,10 +38,26 @@ html, body, #app, .fi-main, .fi-page, .fi-panel {
     background-color: transparent !important;
 }
 
+/* Table outer container – liquid glass */
+.fi-ta-ctn {
+    background: var(--sn-glass-bg) !important;
+    backdrop-filter: var(--sn-glass-blur) !important;
+    border: 1px solid var(--sn-glass-border) !important;
+    box-shadow: var(--sn-glass-shadow) !important;
+}
+
 .fi-topbar {
     background: var(--sn-glass-bg-strong) !important;
     backdrop-filter: var(--sn-glass-blur) !important;
     border-bottom: 1px solid var(--sn-glass-border) !important;
+    box-shadow: var(--sn-glass-shadow) !important;
+}
+
+/* Sidebar navigation – liquid glass */
+.fi-sidebar {
+    background: var(--sn-glass-bg) !important;
+    backdrop-filter: var(--sn-glass-blur) !important;
+    border-right: 1px solid var(--sn-glass-border) !important;
     box-shadow: var(--sn-glass-shadow) !important;
 }
 
@@ -79,6 +94,16 @@ tbody tr {
 .fi-main {
     position: relative;
     z-index: 10;
+}
+
+/* Grid view container – liquid glass */
+.fi-ta-content-grid,
+.fi-ta-content.fi-ta-content-grid,
+.fi-grid {
+    background: var(--sn-glass-bg) !important;
+    backdrop-filter: var(--sn-glass-blur) !important;
+    border: 1px solid var(--sn-glass-border) !important;
+    box-shadow: var(--sn-glass-shadow) !important;
 }
 
 .stars,
