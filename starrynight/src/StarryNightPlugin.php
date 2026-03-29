@@ -198,7 +198,10 @@ HTML;
         createMeteors();
 
         var canvas = document.getElementById('starrynight-stars');
-        if (canvas && canvas.dataset.ctInitialized === '1') return;
+        // Only skip if the canvas exists AND the RAF loop is still alive.
+        // If RAF died (e.g. canvas was briefly detached during a morphdom swap)
+        // fall through so we restart the draw loop on the existing canvas.
+        if (canvas && canvas.dataset.ctInitialized === '1' && window.__starrynight_raf) return;
 
         if (canvas && canvas.tagName !== 'CANVAS') {
             if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
@@ -307,6 +310,7 @@ HTML;
 
     function runInit() {
         try { initStars(); } catch (e) { console.error('StarryNight init error', e); }
+        setupObserver();
     }
 
     if (document.readyState === 'loading') {
@@ -318,24 +322,39 @@ HTML;
     window.addEventListener('turbo:load', function () { reset(); runInit(); });
     window.addEventListener('turbo:render', runInit);
     window.addEventListener('pjax:end', function () { reset(); runInit(); });
-    window.addEventListener('popstate', runInit);
+    // Call reset() before reinit on popstate so a stale canvas with
+    // ctInitialized=1 doesn't block star creation after browser back/forward.
+    window.addEventListener('popstate', function () { reset(); runInit(); });
     window.addEventListener('spa:navigate', function () { reset(); runInit(); });
+    // Back/forward cache restore – page is shown from memory, RAF is not running.
+    window.addEventListener('pageshow', function (e) { if (e.persisted) { reset(); runInit(); } });
+    // Livewire 3 (Filament) fires this on document, not window.
+    // reset() is needed because morphdom may leave the canvas in the DOM with
+    // ctInitialized=1 while the RAF loop has already died; a clean teardown
+    // guarantees stars are always fully restarted after navigation.
+    document.addEventListener('livewire:navigated', function () { reset(); runInit(); });
 
-    try {
-        window.__starrynight_observer = new MutationObserver(function (mutations) {
-            for (var i = 0; i < mutations.length; i++) {
-                var removed = mutations[i].removedNodes;
-                for (var j = 0; j < removed.length; j++) {
-                    if (removed[j] && (removed[j].id === 'starrynight-stars' || removed[j].id === 'starrynight-meteors')) {
-                        runInit();
-                        return;
+    function setupObserver() {
+        // Guard prevents duplicate observers within the same lifecycle.
+        // reset() always disconnects and nulls the previous observer before
+        // calling runInit(), so a new observer is registered exactly once
+        // per init cycle with no risk of multiple concurrent instances.
+        if (window.__starrynight_observer) return;
+        try {
+            window.__starrynight_observer = new MutationObserver(function (mutations) {
+                for (var i = 0; i < mutations.length; i++) {
+                    var removed = mutations[i].removedNodes;
+                    for (var j = 0; j < removed.length; j++) {
+                        if (removed[j] && (removed[j].id === 'starrynight-stars' || removed[j].id === 'starrynight-meteors')) {
+                            runInit();
+                            return;
+                        }
                     }
                 }
-            }
-        });
-        if (document.body) window.__starrynight_observer.observe(document.body, { childList: true });
-    } catch (e) {}
-
+            });
+            if (document.body) window.__starrynight_observer.observe(document.body, { childList: true });
+        } catch (e) {}
+    }
 })();
 </script>
 JS;
