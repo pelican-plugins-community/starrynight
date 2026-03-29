@@ -145,18 +145,6 @@ HTML;
         });
 
         $panel->renderHook('panels::body.start', function () {
-            $meteorHtml = '<section class="starrynight-meteors">
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-            </section>';
             $meteorCss = <<<'CSS'
             <style>
             .starrynight-meteors { position: absolute; top: 0; left: 0; width: 100%; height: 100vh; pointer-events: none; z-index: 2; overflow: hidden; }
@@ -175,115 +163,147 @@ HTML;
             .starrynight-meteors span:nth-child(10) { top: 0px; right: 450px; left: initial; animation-delay: 2.75s; animation-duration: 2.75s; }
             </style>
             CSS;
-            $starDiv = '<div id="starrynight-stars" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3;"></div>';
-            $starStyle = <<<'CSS'
-<style>
-.static-star, .flickering-star {
-    transition: opacity 1.2s cubic-bezier(0.4,0,0.2,1), filter 1.2s cubic-bezier(0.4,0,0.2,1);
-    background: var(--sn-star-color, #fff);
-}
-.static-star {
-    opacity: 0.8;
-    filter: brightness(1);
-}
-.flickering-star {
-    opacity: 1;
-    filter: brightness(1.7) drop-shadow(0 0 6px var(--sn-star-color, #fff));
-}
-</style>
-CSS;
             $starJs = <<<'JS'
 <script>
 (function () {
-    const totalStars = 400;
-    const flickerCount = 80;
+    var STAR_COUNT = 400;
+    var FLICKER_COUNT = 80;
+    var FLICKER_INTERVAL = 3000;
 
-    function createContainerIfMissing() {
-        let container = document.getElementById('starrynight-stars');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'starrynight-stars';
-            container.style.position = 'fixed';
-            container.style.top = '0';
-            container.style.left = '0';
-            container.style.width = '100%';
-            container.style.height = '100%';
-            container.style.pointerEvents = 'none';
-            container.style.zIndex = '3';
-            document.body.appendChild(container);
+    function getStarColor() {
+        try {
+            var c = getComputedStyle(document.documentElement).getPropertyValue('--sn-star-color').trim();
+            return c || '#ffffff';
+        } catch (e) { return '#ffffff'; }
+    }
+
+    function createMeteors() {
+        if (document.getElementById('starrynight-meteors')) return;
+        var section = document.createElement('section');
+        section.className = 'starrynight-meteors';
+        section.id = 'starrynight-meteors';
+        for (var i = 0; i < 10; i++) {
+            section.appendChild(document.createElement('span'));
         }
-        return container;
+        if (document.body.firstChild) {
+            document.body.insertBefore(section, document.body.firstChild);
+        } else {
+            document.body.appendChild(section);
+        }
     }
 
     function initStars() {
-        const container = createContainerIfMissing();
+        if (!document.body) return;
 
-        if (container.dataset.ctInitialized === '1') return;
+        createMeteors();
 
-        container.innerHTML = '';
+        var canvas = document.getElementById('starrynight-stars');
+        if (canvas && canvas.dataset.ctInitialized === '1') return;
 
-        const stars = [];
-        const starPositions = [];
-        function isFarEnough(top, left, minDist) {
-            for (const pos of starPositions) {
-                const dx = left - pos.left;
-                const dy = top - pos.top;
-                if (Math.sqrt(dx*dx + dy*dy) < minDist) return false;
-            }
-            return true;
+        if (canvas && canvas.tagName !== 'CANVAS') {
+            if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+            canvas = null;
         }
-        let attempts = 0;
-        for (let i = 0; i < totalStars; i++) {
-            let top, left, size;
-            do {
-                top = 5 + Math.random() * 90;
-                left = 5 + Math.random() * 90;
-                size = 1 + Math.random() * 2;
-                attempts++;
-            } while (!isFarEnough(top, left, 2.5) && attempts < 1000);
-            starPositions.push({top, left});
-            const star = document.createElement('div');
-            star.style.position = 'absolute';
-            star.style.top = top + '%';
-            star.style.left = left + '%';
-            star.style.width = size + 'px';
-            star.style.height = size + 'px';
-            star.className = 'static-star';
-            container.appendChild(star);
-            stars.push(star);
+
+        if (!canvas) {
+            canvas = document.createElement('canvas');
+            canvas.id = 'starrynight-stars';
+            canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:3;';
+            if (document.body.firstChild) {
+                document.body.insertBefore(canvas, document.body.firstChild);
+            } else {
+                document.body.appendChild(canvas);
+            }
+        }
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        var ctx = canvas.getContext('2d');
+
+        var stars = [];
+        for (var i = 0; i < STAR_COUNT; i++) {
+            stars.push({
+                px: 0.05 + Math.random() * 0.9,
+                py: 0.05 + Math.random() * 0.9,
+                size: 1 + Math.random() * 2,
+                flickering: false,
+                opacity: 0.5 + Math.random() * 0.4,
+                flickerPhase: Math.random() * Math.PI * 2,
+                flickerSpeed: 0.5 + Math.random() * 1.5
+            });
         }
 
         function updateFlickeringStars() {
-            if (!stars.length) return;
-            stars.forEach(star => {
-                star.classList.remove('flickering-star');
-                star.classList.add('static-star');
-            });
-            const flickerIndices = new Set();
-            while (flickerIndices.size < flickerCount) {
-                flickerIndices.add(Math.floor(Math.random() * totalStars));
+            for (var i = 0; i < stars.length; i++) stars[i].flickering = false;
+            var picked = {};
+            var count = 0;
+            while (count < FLICKER_COUNT) {
+                var idx = Math.floor(Math.random() * STAR_COUNT);
+                if (!picked[idx]) { picked[idx] = true; count++; }
             }
-            flickerIndices.forEach(idx => {
-                const star = stars[idx];
-                if (!star) return;
-                star.classList.remove('static-star');
-                star.classList.add('flickering-star');
-                star.style.animationDelay = (Math.random() * 2).toFixed(1) + 's';
-                star.style.animationDuration = (1.5 + Math.random() * 2).toFixed(1) + 's';
-            });
+            for (var k in picked) { if (stars[k]) stars[k].flickering = true; }
         }
 
-        if (window.__starrynight_stars_interval) {
-            clearInterval(window.__starrynight_stars_interval);
-        }
         updateFlickeringStars();
-        window.__starrynight_stars_interval = setInterval(updateFlickeringStars, 3000);
 
-        container.dataset.ctInitialized = '1';
+        var lastFlickerUpdate = 0;
+
+        function draw(timestamp) {
+            if (!canvas.parentNode) {
+                cancelAnimationFrame(window.__starrynight_raf);
+                window.__starrynight_raf = null;
+                return;
+            }
+            if (timestamp - lastFlickerUpdate > FLICKER_INTERVAL) {
+                updateFlickeringStars();
+                lastFlickerUpdate = timestamp;
+            }
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+            if (canvas.width !== w) canvas.width = w;
+            if (canvas.height !== h) canvas.height = h;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            var color = getStarColor();
+
+            for (var i = 0; i < stars.length; i++) {
+                var star = stars[i];
+                var opacity = star.opacity;
+                var r = star.size / 2;
+                if (star.flickering) {
+                    var phase = (timestamp / 1000 * star.flickerSpeed + star.flickerPhase);
+                    var flicker = (Math.sin(phase) + 1) / 2;
+                    opacity = 0.3 + flicker * 0.7;
+                    r = (star.size * (0.8 + flicker * 0.4)) / 2;
+                }
+                ctx.globalAlpha = opacity;
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(star.px * canvas.width, star.py * canvas.height, Math.max(0.5, r), 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.globalAlpha = 1;
+            window.__starrynight_raf = requestAnimationFrame(draw);
+        }
+
+        if (window.__starrynight_raf) cancelAnimationFrame(window.__starrynight_raf);
+        window.__starrynight_raf = requestAnimationFrame(draw);
+        canvas.dataset.ctInitialized = '1';
     }
 
     window.StarryNight = window.StarryNight || {};
     window.StarryNight.initStars = initStars;
+
+    function reset() {
+        if (window.__starrynight_raf) { cancelAnimationFrame(window.__starrynight_raf); window.__starrynight_raf = null; }
+        if (window.__starrynight_observer) { window.__starrynight_observer.disconnect(); window.__starrynight_observer = null; }
+        var canvas = document.getElementById('starrynight-stars');
+        if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
+        var meteors = document.getElementById('starrynight-meteors');
+        if (meteors && meteors.parentNode) meteors.parentNode.removeChild(meteors);
+    }
 
     function runInit() {
         try { initStars(); } catch (e) { console.error('StarryNight init error', e); }
@@ -295,22 +315,32 @@ CSS;
         runInit();
     }
 
-    window.addEventListener('turbo:load', runInit);
+    window.addEventListener('turbo:load', function () { reset(); runInit(); });
     window.addEventListener('turbo:render', runInit);
-    window.addEventListener('pjax:end', runInit);
+    window.addEventListener('pjax:end', function () { reset(); runInit(); });
     window.addEventListener('popstate', runInit);
-    window.addEventListener('spa:navigate', runInit);
+    window.addEventListener('spa:navigate', function () { reset(); runInit(); });
 
-    const observer = new MutationObserver(() => {
-        runInit();
-    });
-    observer.observe(document.documentElement || document.body, { childList: true, subtree: true });
+    try {
+        window.__starrynight_observer = new MutationObserver(function (mutations) {
+            for (var i = 0; i < mutations.length; i++) {
+                var removed = mutations[i].removedNodes;
+                for (var j = 0; j < removed.length; j++) {
+                    if (removed[j] && (removed[j].id === 'starrynight-stars' || removed[j].id === 'starrynight-meteors')) {
+                        runInit();
+                        return;
+                    }
+                }
+            }
+        });
+        if (document.body) window.__starrynight_observer.observe(document.body, { childList: true });
+    } catch (e) {}
 
 })();
 </script>
 JS;
 
-            return $meteorCss.$meteorHtml.$starDiv.$starStyle.$starJs;
+            return $meteorCss . $starJs;
         });
     }
 
