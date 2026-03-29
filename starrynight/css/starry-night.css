@@ -6,10 +6,10 @@
     --sn-meteor-color: #ffffff;
 
     /* Liquid glass – dark theme */
-    --sn-glass-bg: rgba(255, 255, 255, 0.05);
-    --sn-glass-bg-strong: rgba(255, 255, 255, 0.08);
-    --sn-glass-border: rgba(255, 255, 255, 0.10);
-    --sn-glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --sn-glass-bg: rgba(255, 255, 255, 0.10);
+    --sn-glass-bg-strong: rgba(255, 255, 255, 0.15);
+    --sn-glass-border: rgba(255, 255, 255, 0.15);
+    --sn-glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.10);
     --sn-glass-blur: blur(16px) saturate(180%);
 }
 
@@ -157,11 +157,8 @@ body {
     background-color: transparent !important;
 }
 
-/* Table outer containers – liquid glass */
-.fi-ta-ctn,
-.fi-ta-filters,
-.fi-ta-header-toolbar,
-.fi-ta-empty-state {
+/* Table outer containers – liquid glass (all fi-ta* containers except inner content elements) */
+[class*="fi-ta"]:not(.fi-ta-content):not(.fi-ta-table):not(.fi-ta-header):not(.fi-ta-header-cell):not(.fi-ta-header-row):not(.fi-ta-body):not(.fi-ta-body-row):not(.fi-ta-cell):not(.fi-ta-row) {
     background: var(--sn-glass-bg) !important;
     backdrop-filter: var(--sn-glass-blur) !important;
     border: 1px solid var(--sn-glass-border) !important;
@@ -175,20 +172,18 @@ body {
     box-shadow: var(--sn-glass-shadow) !important;
 }
 
-/* Sidebar navigation – liquid glass (all variants) */
-.fi-sidebar,
-.fi-main-sidebar,
-.fi-sidebar-open {
+/* Sidebar navigation – liquid glass (all fi-sidebar* / fi-main-sidebar* variants) */
+[class*="fi-sidebar"],
+[class*="fi-main-sidebar"] {
     background: var(--sn-glass-bg) !important;
     backdrop-filter: var(--sn-glass-blur) !important;
     border-right: 1px solid var(--sn-glass-border) !important;
     box-shadow: var(--sn-glass-shadow) !important;
 }
-/* Grid view containers – liquid glass (individual cards inside inherit from .fi-card rule) */
+/* Grid view containers – liquid glass (all fi-grid* variants) */
+[class*="fi-grid"],
 .fi-ta-content-grid,
-.fi-ta-content.fi-ta-content-grid,
-.fi-grid,
-.fi-grid-cols {
+.fi-ta-content.fi-ta-content-grid {
     background: var(--sn-glass-bg) !important;
     backdrop-filter: var(--sn-glass-blur) !important;
     border: 1px solid var(--sn-glass-border) !important;
